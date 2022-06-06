@@ -24,8 +24,53 @@ function Get-DisabledADUsers
 #>
 function Export-DisabledADUsers
 {
-$csvPath = Read-Host -Prompt "Please enter a file path to export to. Example: C:\Desktop\YOURFILENAME.csv"
+$csvPath = Read-Host -Prompt "Please enter a file path to export to. Example: C:\Users\Administrator\Desktop\YOURFILENAME.csv"
 
 Get-DisabledADUsers | Export-Csv -Path $csvPath
+
+}
+
+
+
+<#
+.Synopsis
+   Retrieves a .csv file and uses the data in that file to create users in Active Directory. This function must be run on a Domain Controller.
+.DESCRIPTION
+   This function extracts data from a .csv file and uses it to create users in Active Directory.
+.EXAMPLE
+   Import-ADUsers
+#>
+function Import-ADUsers
+{
+[CmdletBinding()]
+Param(
+[Parameter(Mandatory=$True,ValueFromPipeline=$True)]
+[string[]]$FilePath
+)#Param
+PROCESS{
+
+$secret = ConvertTo-SecureString "Pa55w.rd" -AsPlainText -Force
+
+#$FilePath = Read-Host -Prompt "Enter the filepath to the .csv you are importing. Example: C:\Users\Administrator\Desktop\YOURFILENAME.csv"
+
+$users = Import-Csv $FilePath
+
+foreach ($user in $users)
+{
+    $fname = $user.GivenName
+    $lname = $user.Surname
+    #$active = $user.Enabled
+    #$email = $user.UserPrincipalName
+    #$fullName = $user.Name
+    #$class = $user.ObjectClass
+    $OUpath = $user.DistinguishedName
+    $expireOn = (Get-Date).AddDays(365)
+
+    New-ADUser -Name "$fname $lname" -GivenName $fname -Surname $lname -UserPrincipalName "$fname.$lname" -Path $OUpath -AccountExpirationDate $expireOn -AccountPassword $secret -ChangePasswordAtLogon $True -Enabled $True
+
+    Write-Output "Account created for $fname $lname in $OUpath"
+}
+}
+
 
 }
