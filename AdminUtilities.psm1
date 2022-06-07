@@ -83,6 +83,7 @@ foreach ($user in $users)
     Write-Output "Account created for $fname $lname in $OUpath"
 }
 }
+}
 <#
 .Synopsis
    Short description
@@ -90,9 +91,9 @@ foreach ($user in $users)
    Long description
 .EXAMPLE
    Example of how to use this cmdlet
-#>
-#function Verb-Noun
-#{
 
-#}
+function Verb-Noun
+{
+
 }
+#>
