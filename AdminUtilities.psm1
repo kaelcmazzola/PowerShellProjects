@@ -8,50 +8,50 @@
 #>
 function Get-DisabledADUsers{
    Get-ADUser -Filter 'Enabled -eq $false'
-}
+ }
  
  
  
-<#
-.Synopsis
-   Retrieves expired accounts and exports them to a specified directory. This function must be run on a Domain Controller.
-.DESCRIPTION
-   This function searches Active Directory for expired accounts and then exports the output to a .csv in a specified location.
-.EXAMPLE
-   Export-DisabledADUsers
-#>
-function Export-DisabledADUsers{
-$csvPath = Read-Host -Prompt "Please enter a file path to export to. Example: C:\Users\Administrator\Desktop\YOURFILENAME.csv"
+ <#
+ .Synopsis
+    Retrieves expired accounts and exports them to a specified directory. This function must be run on a Domain Controller.
+ .DESCRIPTION
+    This function searches Active Directory for expired accounts and then exports the output to a .csv in a specified location.
+ .EXAMPLE
+    Export-DisabledADUsers
+ #>
+ function Export-DisabledADUsers{
+ $csvPath = Read-Host -Prompt "Please enter a file path to export to. Example: C:\Users\Administrator\Desktop\YOURFILENAME.csv"
  
-Get-DisabledADUsers | Export-Csv -Path $csvPath
-}
+ Get-DisabledADUsers | Export-Csv -Path $csvPath
+ }
  
  
  
-<#
-.Synopsis
-   Retrieves a .csv file and uses the data in that file to create users in Active Directory. This function must be run on a Domain Controller.
-.DESCRIPTION
-   This function extracts data from a .csv file and uses it to create users in Active Directory.
-.EXAMPLE
-   Import-ADUsers
-#>
-function Import-ADUsers{
-[CmdletBinding()]
-Param(
-[Parameter(Mandatory=$True,ValueFromPipeline=$True)]
-[string[]]$FilePath
-)#Param
-PROCESS{
+ <#
+ .Synopsis
+    Retrieves a .csv file and uses the data in that file to create users in Active Directory. This function must be run on a Domain Controller.
+ .DESCRIPTION
+    This function extracts data from a .csv file and uses it to create users in Active Directory.
+ .EXAMPLE
+    Import-ADUsers
+ #>
+ function Import-ADUsers{
+ [CmdletBinding()]
+ Param(
+ [Parameter(Mandatory=$True,ValueFromPipeline=$True)]
+ [string[]]$FilePath
+ )#Param
+ PROCESS{
  
-$secret = ConvertTo-SecureString "Pa55w.rd" -AsPlainText -Force
+ $secret = ConvertTo-SecureString "Pa55w.rd" -AsPlainText -Force
  
-#$FilePath = Read-Host -Prompt "Enter the filepath to the .csv you are importing. Example: C:\Users\Administrator\Desktop\YOURFILENAME.csv"
+ #$FilePath = Read-Host -Prompt "Enter the filepath to the .csv you are importing. Example: C:\Users\Administrator\Desktop\YOURFILENAME.csv"
  
-$users = Import-Csv $FilePath
+ $users = Import-Csv $FilePath
  
-foreach ($user in $users)
-{
+ foreach ($user in $users)
+ {
      $fname = $user.firstname
      #$midInitial = $user.middleInitial
      $lname = $user.lastname
@@ -76,34 +76,70 @@ foreach ($user in $users)
      New-ADUser -Name "$fname $lname" -GivenName $fname -Surname $lname -UserPrincipalName "$fname.$lname" -Path $OUpath -AccountExpirationDate $expireOn -AccountPassword $secret -ChangePasswordAtLogon $True -Enabled $True -EmailAddress $email -StreetAddress $address -City $city -PostalCode $zipCode -State $state -Country $countryCode -Department $department -OfficePhone $telephone -Title $jobtitle -Company $company
     
      Write-Output "Account created for $fname $lname in $OUpath"
-}
-}
-}
+ }
+ }
+ }
  
  
  
-<#
-.Synopsis
-   Retrieves information about a computer on the domain.
-.DESCRIPTION
-   This function retrieves information about a computer on the domain using Get-CimInstance and Get-WMIObject.
-.EXAMPLE
-   Get-PCProperties -ComputerName COMPUTER1,COMPUTER2
-#>
-function Get-PCProperties{
-   [CmdletBinding()]
-   Param(
-   [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
-   [string[]]$ComputerName 
-   )#Param
-   PROCESS{
-      ForEach($computer in $ComputerName){    
-           $os = Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName $computername
-           $boot = $os.LastBootUpTime
-           $uptime = $os.LocalDateTime - $os.LastBootUpTime
-           $cdrive = Get-WmiObject Win32_LogicalDisk -Filter "DeviceID='c:'" -ComputerName $computername
-           $freespace = $cdrive.FreeSpace /1GB -as [INT]
-           $connection = Test-Connection -ComputerName $computername -Count 1 -Quiet
+ <#
+ .Synopsis
+    Short description
+ .DESCRIPTION
+    Long description
+ .EXAMPLE
+    Example of how to use this cmdlet
+ .EXAMPLE
+    Another example of how to use this cmdlet
+ #> #Not working for some reason? No error, works on personal computer as: Get-CimInstance -ClassName Win32_ComputerSystem | Select UserName
+ function Get-LoggedOnUser{
+     [CmdletBinding()]
+     [Alias()]
+ 
+     Param
+     (
+         [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)]
+         #[ValidateScript({Test-Connection -ComputerName $_ -Quiet -Count 1})]
+         #[ValidateNotNullOrEmpty()]
+         [string[]]$ComputerName# = $env:COMPUTERNAME
+     )
+ 
+     ForEach($computer in $ComputerName){
+     
+     $output = @{
+         'ComputerName' = $computer;
+     }#OutputHashTable
+     $output.Username = (Get-CimInstance -ClassName Win32_ComputerSystem -ComputerName $computer).UserName
+     [PSCustomObject]$output
+ 
+     }#ForEach
+         
+ }#function Get-LoggedOnUser
+ 
+ 
+ 
+ <#
+ .Synopsis
+    Retrieves information about a computer on the domain.
+ .DESCRIPTION
+    This function retrieves information about a computer on the domain using Get-CimInstance and Get-WMIObject.
+ .EXAMPLE
+    Get-PCProperties -ComputerName COMPUTER1,COMPUTER2
+ #>
+ function Get-PCProperties{
+    [CmdletBinding()]
+    Param(
+    [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+    [string[]]$ComputerName 
+    )#Param
+    PROCESS{
+        ForEach($computer in $ComputerName){    
+            $os = Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName $computername
+            $boot = $os.LastBootUpTime
+            $uptime = $os.LocalDateTime - $os.LastBootUpTime
+            $cdrive = Get-WmiObject Win32_LogicalDisk -Filter "DeviceID='c:'" -ComputerName $computername
+            $freespace = $cdrive.FreeSpace /1GB -as [INT]
+            $connection = Test-Connection -ComputerName $computername -Count 1 -Quiet
     
         $Properties = [ordered]@{
     
@@ -123,40 +159,40 @@ function Get-PCProperties{
         Write-Output $obj
     
                         
-      }#ForEach
+        }#ForEach
     
     
-   }#Process
+    }#Process
     
     
-   }
+    }
  
  
  
-function Get-StyleSheet {
-[CmdletBinding()]
-Param()
-@"
-<style>
-body {
+ function Get-StyleSheet {
+ [CmdletBinding()]
+ Param()
+ @"
+ <style>
+ body {
      font-family:Segoe,Tahoma,Arial,Helvetica;
      font-size:10pt;
      color:#333;
      background-color:#eee;
      margin:10px;
-}
-th {
+ }
+ th {
      font-weight:bold;
      color:white;
      background-color:#333;
-}
-</style>
+ }
+ </style>
 "@
-}
+ }
  
-function New-HTMLReport{
-[CmdletBinding()]
-Param(
+ function New-HTMLReport{
+ [CmdletBinding()]
+ Param(
      [Parameter(Mandatory=$True)]
      [string]$ComputerName,
  
@@ -168,7 +204,7 @@ Param(
                           ConvertTo-HTML -Fragment -As List -PreContent "<h2>Basic Target Computer Info</h2>" |
                           Out-String
  
-                 $frag2 = Get-ADUser -Properties AccountExpirationDate -Filter * | Select-Object Name,DistinguishedName,Enabled,AccountExpirationDate -Last 10 |
+                 $frag2 = Get-ADUser -Properties AccountExpirationDate,LastLogonDate -Filter * | Select-Object Name,DistinguishedName,Enabled,AccountExpirationDate,LastLogonDate -Last 10 |
                           ConvertTo-Html -Fragment -As Table -PreContent "<h2>Newest AD Users</h2>" |
                           Out-String
  
@@ -195,4 +231,4 @@ Param(
                           -Head $style `
                           -Body "<h1>Report for $ComputerName</h1>",$frag1,$frag2,$frag3,$frag4 |
                           Out-File $reportfilename
-}
+ }
