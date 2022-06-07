@@ -57,20 +57,42 @@ $users = Import-Csv $FilePath
 
 foreach ($user in $users)
 {
-    $fname = $user.GivenName
-    $lname = $user.Surname
+    $fname = $user.firstname
+    #$midInitial = $user.middleInitial
+    $lname = $user.lastname
     #$active = $user.Enabled
-    #$email = $user.UserPrincipalName
+    $email = $user.email
+    $address = $user.streetaddress
+    $city = $user.city
+    $zipCode = $user.zipcode
+    $state = $user.state
+    $countryCode = $user.countrycode
+    $department = $user.department
+    #$password = $user.password
+    $telephone = $user.telephone
+    $jobtitle = $user.jobtitle
+    $company = $user.company
     #$fullName = $user.Name
     #$class = $user.ObjectClass
-    $OUpath = $user.DistinguishedName
+    $OUpath = $user.ou
+    #$mailDomain = $user.maildomain
     $expireOn = (Get-Date).AddDays(365)
 
-    New-ADUser -Name "$fname $lname" -GivenName $fname -Surname $lname -UserPrincipalName "$fname.$lname" -Path $OUpath -AccountExpirationDate $expireOn -AccountPassword $secret -ChangePasswordAtLogon $True -Enabled $True
-
+    New-ADUser -Name "$fname $lname" -GivenName $fname -Surname $lname -UserPrincipalName "$fname.$lname" -Path $OUpath -AccountExpirationDate $expireOn -AccountPassword $secret -ChangePasswordAtLogon $True -Enabled $True -EmailAddress $email -StreetAddress $address -City $city -PostalCode $zipCode -State $state -Country $countryCode -Department $department -OfficePhone $telephone -Title $jobtitle -Company $company
+   
     Write-Output "Account created for $fname $lname in $OUpath"
 }
 }
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+#>
+#function Verb-Noun
+#{
 
-
+#}
 }
