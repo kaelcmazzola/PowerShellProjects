@@ -86,14 +86,48 @@ foreach ($user in $users)
 }
 <#
 .Synopsis
-   Short description
+   Retrieves information about a computer on the domain.
 .DESCRIPTION
-   Long description
+   This function retrieves information about a computer on the domain using Get-CimInstance and Get-WMIObject.
 .EXAMPLE
-   Example of how to use this cmdlet
-
-function Verb-Noun
-{
-
-}
+   Get-PCProperties -ComputerName COMPUTER1,COMPUTER2
 #>
+FUNCTION Get-PCProperties{
+   [CmdletBinding()]
+   Param(
+   [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+   [string[]]$computername 
+   )#Param
+   PROCESS{
+       ForEach($computer in $computername){    
+           $os = Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName $computername
+           $boot = $os.LastBootUpTime
+           $uptime = $os.LocalDateTime - $os.LastBootUpTime
+           $cdrive = Get-WmiObject Win32_LogicalDisk -Filter "DeviceID='c:'" -ComputerName $computername
+           $freespace = $cdrive.FreeSpace /1GB -as [INT]
+           #$connection = Test-Connection -ComputerName $computername -Count 1 -Quiet
+   
+       $Properties = [ordered]@{
+   
+           'Computername' = $computer;
+           'OS' = $os.Caption;
+           'LastBootUp' = $boot;
+           'UpTimeHours' = $uptime;
+           'RunningServices' = $running;
+           'C:FreeSpace' = $freespace.ToString("########## GB");
+           'Connectivity' = Get-PCConnect -computername $computername
+   
+       }#PropertiesHashTable
+   
+       $obj = New-Object -TypeName PSObject -Property $properties
+   
+       Write-Output $obj
+   
+                       
+       }#ForEach
+   
+   
+   }#Process
+   
+   
+   }#Function
