@@ -119,7 +119,7 @@ function Get-LoggedOnUser{
     [Alias()]
     Param
     (
-        # Param1 help description
+        
         [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({Test-Connection -ComputerName $_ -Quiet -Count 1})]
         [ValidateNotNullOrEmpty()]
@@ -133,7 +133,7 @@ function Get-LoggedOnUser{
     $output.UserName = (Get-WmiObject -Class Win32_ComputerSystem -ComputerName $computer).Username
     [PSCustomObject]$output
 
-    }#ForEach
+    }
         
 }#function Get-LoggedOnUser
 
@@ -289,6 +289,21 @@ if($coin -eq 1){Write-Host `n "Heads"}
 else{Write-Host `n "Tails"}
 }#function Get-CoinFlip
 
+
+
+<# CAUTION #><# CAUTION #><# CAUTION #><# CAUTION #><# CAUTION #>
+
+function Clean-Folder{
+Param(
+   [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True)]
+   [string]$Path
+   )
+#$Path = Read-Host "Specify the directory you want to clear of files older than 60 days."
+$limit = (Get-Date).AddDays(-60)
+Get-ChildItem -Recurse -Path $Path -File | Where-Object LastWriteTime -lt $limit | Move-Item -Destination 'C:\Users\Administrator.ADATUM\Desktop\Old Files' -Force
+Write-Host `n "Items not updated since $limit have been moved to the Old Files folder on your desktop."
+
+}#function Clean-Folder
 
 
 
