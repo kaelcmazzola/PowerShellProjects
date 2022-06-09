@@ -238,6 +238,9 @@ th {
 "@
 }#function Get-StyleSheet
 
+
+<#
+#>
 function New-HTMLReport{
 [CmdletBinding()]
 Param(
@@ -285,8 +288,8 @@ Param(
 
 function Get-CoinFlip{
 $coin = Get-Random -Minimum 1 -Maximum 3
-if($coin -eq 1){Write-Host `n "Heads"}
-else{Write-Host `n "Tails"}
+if($coin -eq 1){Write-Host `n "Heads" `n}
+else{Write-Host `n "Tails" `n}
 }#function Get-CoinFlip
 
 
@@ -307,7 +310,17 @@ Write-Host `n "Items not updated since $limit have been moved to the Old Files f
 
 
 
-
+function Send-Message{
+   Param(
+   [Parameter(Mandatory=$True)]
+   [string]$Message,
+   [Parameter(Mandatory=$True)]
+   [string[]]$ComputerName
+   )
+   ForEach($computer in $ComputerName){
+   msg * /server:$ComputerName "$Message"
+   }
+}
 
     
    # $ERROR[1].GetType().fullname
