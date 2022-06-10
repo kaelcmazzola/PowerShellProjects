@@ -158,6 +158,7 @@ function Export-LoggedOnUser{
     )
     try{
         Get-LoggedOnUser -ComputerName $ComputerName | Export-Csv -Path $Path -NoTypeInformation -ErrorAction Stop
+        Write-Output `n "The .csv file was successfully created in $Path."
     }
     catch {
         Write-Host "You need to provide a file path ending with the name of the .csv you want to export."
@@ -320,7 +321,20 @@ function Send-Message{
    ForEach($computer in $ComputerName){
    msg * /server:$ComputerName "$Message"
    }
-}
+}#function Send-Message
+
+
+
+function Get-FileSize{
+ Param(
+   [Parameter(Mandatory=$True)]
+   [string]$Path
+   )
+$file = Get-ChildItem -Recurse -Include * -Path $Path
+$filesize = ($file | Measure-Object -Sum Length).Sum /1GB
+
+}#function Get-FileSize
+
 
     
    # $ERROR[1].GetType().fullname
