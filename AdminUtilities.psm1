@@ -332,9 +332,10 @@ function Get-FileSize{
    )
 $file = Get-ChildItem -Recurse -Include * -Path $Path
 $filesize = ($file | Measure-Object -Sum Length).Sum /1GB
-
+Write-Output $filesize
 }#function Get-FileSize
 
 
     
    # $ERROR[1].GetType().fullname
+   # Using ForEach: The second variable is typically plural, i.e. ForEach($computer in $Computers){#ForEach code}
